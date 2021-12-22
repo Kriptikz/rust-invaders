@@ -32,9 +32,15 @@ fn setup(
     window.set_position(IVec2::new(1314, 0));
 
     // spawn a sprite
+    let bottom = -window.height() / 2.0;
     commands
         .spawn_bundle(SpriteBundle {
             material: materials.add(asset_server.load(PLAYER_SPRITE).into()),
+            transform: Transform {
+                translation: Vec3::new(0.0, bottom + 75.0 / 4.0 + 5.0, 10.0),
+                scale: Vec3::new(0.5, 0.5, 1.0),
+                ..Default::default()
+            },
             ..Default::default()
         });
 }
