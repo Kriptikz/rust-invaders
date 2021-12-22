@@ -19,6 +19,7 @@ struct WinSize {
 
 // Components
 struct Player;
+struct PlayerReadyFire(bool);
 struct Laser;
 struct Speed(f32);
 impl Default for Speed {
@@ -84,6 +85,7 @@ fn player_spawn(mut commands: Commands, materials: Res<Materials>, win_size: Res
             ..Default::default()
         })
         .insert(Player)
+        .insert(PlayerReadyFire(true))
         .insert(Speed::default());
 }
 
@@ -107,23 +109,30 @@ fn player_fire(
     mut commands: Commands,
     kb: Res<Input<KeyCode>>,
     materials: Res<Materials>,
-    mut query: Query<(&Transform, With<Player>)>,
+    mut query: Query<(&Transform, &mut PlayerReadyFire, With<Player>)>,
 ) {
-    if let Ok((player_tf, _)) = query.single_mut() {
-        if kb.pressed(KeyCode::Space) {
+    if let Ok((player_tf, mut ready_fire, _)) = query.single_mut() {
+        if ready_fire.0 && kb.pressed(KeyCode::Space) {
             let x = player_tf.translation.x;
             let y = player_tf.translation.y;
-            commands.spawn_bundle(SpriteBundle {
-                material: materials.laser.clone(),
-                transform: Transform {
-                    translation: Vec3::new(x, y, 0.0),
+            commands
+                .spawn_bundle(SpriteBundle {
+                    material: materials.laser.clone(),
+                    transform: Transform {
+                        translation: Vec3::new(x, y, 0.0),
+                        ..Default::default()
+                    },
                     ..Default::default()
-                },
-                ..Default::default()
-            })
-            .insert(Laser)
-            .insert(Speed::default());
+                })
+                .insert(Laser)
+                .insert(Speed::default());
+            ready_fire.0 = false;
         }
+
+        if kb.just_released(KeyCode::Space) {
+            ready_fire.0 = true;
+        }
+
     }
 }
 
