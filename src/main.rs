@@ -4,6 +4,7 @@ use bevy::prelude::*;
 
 const PLAYER_SPRITE: &str = "player_a_01.png";
 const LASER_SPRITE: &str = "laser_a_01.png";
+const SCALE: f32 = 0.5;
 const TIME_STEP: f32 = 1.0 / 60.0;
 
 
@@ -122,6 +123,7 @@ fn player_fire(
                         material: materials.laser.clone(),
                         transform: Transform {
                             translation: Vec3::new(x + x_offset, y + 15.0, 0.0),
+                            scale: Vec3::new(SCALE, SCALE, 1.0),
                             ..Default::default()
                         },
                         ..Default::default()
