@@ -62,6 +62,7 @@ fn main() {
         .add_startup_system(setup.system())
         .add_system(laser_hit_enemy.system())
         .add_system(explosion_to_spawn.system())
+        .add_system(animate_explosion.system())
         .run();
 }
 
@@ -146,8 +147,36 @@ fn explosion_to_spawn(
                 },
                 ..Default::default()
             })
-            .insert(Explosion);
+            .insert(Explosion)
+            .insert(Timer::from_seconds(0.05, true));
 
         commands.entity(explosion_spawn_entity).despawn();
+    }
+}
+
+fn animate_explosion(
+    mut commands: Commands,
+    time: Res<Time>,
+    texture_atlasas: Res<Assets<TextureAtlas>>,
+    mut query: Query<(
+        Entity,
+        &mut Timer,
+        &mut TextureAtlasSprite,
+        &Handle<TextureAtlas>,
+        With<Explosion>
+    )>,
+) {
+    for (entity, mut timer, mut sprite, texture_atlas_handle, _) in query.iter_mut() {
+        timer.tick(time.delta());
+
+        if timer.finished() {
+            let texture_atlas = texture_atlasas.get(texture_atlas_handle).unwrap();
+            sprite.index += 1;
+
+            if sprite.index == texture_atlas.textures.len() as u32 {
+                commands
+                    .entity(entity).despawn()
+            }
+        }
     }
 }
