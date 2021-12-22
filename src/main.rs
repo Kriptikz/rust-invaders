@@ -29,4 +29,12 @@ fn setup(
     // position window
     let mut window = windows.get_primary_mut().unwrap();
     window.set_position(IVec2::new(1314, 0));
+
+    // spawn a sprite
+    commands
+        .spawn_bundle(SpriteBundle {
+            material: materials.add(Color::rgb(1., 0.7, 0.7).into()),
+            sprite: Sprite::new(Vec2::new(200.0, 100.0)),
+            ..Default::default()
+        });
 }
