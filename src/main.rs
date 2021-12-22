@@ -41,6 +41,7 @@ fn main() {
         .add_startup_stage("game_setup_actors", SystemStage::single(player_spawn.system()))
         .add_system(player_movement.system())
         .add_system(player_fire.system())
+        .add_system(laser_movement.system())
         .run();
 }
 
@@ -122,6 +123,20 @@ fn player_fire(
             })
             .insert(Laser)
             .insert(Speed::default());
+        }
+    }
+}
+
+fn laser_movement(
+    mut commands: Commands,
+    win_size: Res<WinSize>,
+    mut query: Query<(Entity, &Speed, &mut Transform, With<Laser>)>
+) {
+    for (laser_entity, speed, mut laser_tf, _) in query.iter_mut() {
+        let translation = &mut laser_tf.translation;
+        translation.y += speed.0 * TIME_STEP;
+        if translation.y > win_size.h {
+            commands.entity(laser_entity).despawn();
         }
     }
 }
