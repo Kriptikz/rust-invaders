@@ -119,7 +119,7 @@ fn player_fire(
                 .spawn_bundle(SpriteBundle {
                     material: materials.laser.clone(),
                     transform: Transform {
-                        translation: Vec3::new(x, y, 0.0),
+                        translation: Vec3::new(x, y + 15.0, 0.0),
                         ..Default::default()
                     },
                     ..Default::default()
