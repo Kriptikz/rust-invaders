@@ -115,18 +115,26 @@ fn player_fire(
         if ready_fire.0 && kb.pressed(KeyCode::Space) {
             let x = player_tf.translation.x;
             let y = player_tf.translation.y;
-            commands
-                .spawn_bundle(SpriteBundle {
-                    material: materials.laser.clone(),
-                    transform: Transform {
-                        translation: Vec3::new(x, y + 15.0, 0.0),
+
+            let mut spawn_lasers = |x_offset: f32| {
+                commands
+                    .spawn_bundle(SpriteBundle {
+                        material: materials.laser.clone(),
+                        transform: Transform {
+                            translation: Vec3::new(x + x_offset, y + 15.0, 0.0),
+                            ..Default::default()
+                        },
                         ..Default::default()
-                    },
-                    ..Default::default()
-                })
-                .insert(Laser)
-                .insert(Speed::default());
-            ready_fire.0 = false;
+                    })
+                    .insert(Laser)
+                    .insert(Speed::default());
+            };
+
+                let x_offset = 144.0 / 4.0 - 5.0;
+                spawn_lasers(x_offset);
+                spawn_lasers(-x_offset);
+                
+                ready_fire.0 = false;
         }
 
         if kb.just_released(KeyCode::Space) {
