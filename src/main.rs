@@ -3,12 +3,13 @@
 use bevy::prelude::*;
 
 const PLAYER_SPRITE: &str = "player_a_01.png";
+const LASER_SPRITE: &str = "laser_a_01.png";
 const TIME_STEP: f32 = 1.0 / 60.0;
 
 
 // Resources
 pub struct Materials {
-    player_materials: Handle<ColorMaterial>, 
+    player: Handle<ColorMaterial>, 
 }
 struct WinSize {
     w: f32,
@@ -53,7 +54,7 @@ fn setup(
 
     // create the main resources
     commands.insert_resource(Materials {
-        player_materials: materials.add(asset_server.load(PLAYER_SPRITE).into()),
+        player: materials.add(asset_server.load(PLAYER_SPRITE).into()),
     });
     commands.insert_resource(WinSize {
         w: window.width(),
@@ -69,7 +70,7 @@ fn player_spawn(mut commands: Commands, materials: Res<Materials>, win_size: Res
     let bottom = -win_size.h / 2.0;
     commands
         .spawn_bundle(SpriteBundle {
-            material: materials.player_materials.clone(),
+            material: materials.player.clone(),
             transform: Transform {
                 translation: Vec3::new(0.0, bottom + 75.0 / 4.0 + 5.0, 10.0),
                 scale: Vec3::new(0.5, 0.5, 1.0),
