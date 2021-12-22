@@ -4,6 +4,14 @@ use bevy::prelude::*;
 
 const PLAYER_SPRITE: &str = "player_a_01.png";
 
+pub struct Materials {
+    player_materials: Handle<ColorMaterial>, 
+}
+struct WinSize {
+    w: f32,
+    h: f32,
+}
+
 fn main() {
     App::build()
         .insert_resource(ClearColor(Color::rgb(0.04, 0.04, 0.04)))
@@ -15,6 +23,7 @@ fn main() {
         })
         .add_plugins(DefaultPlugins)
         .add_startup_system(setup.system())
+        .add_startup_stage("game_setup_actors", SystemStage::single(player_spawn.system()))
         .run();
 }
 
@@ -24,18 +33,30 @@ fn setup(
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut windows: ResMut<Windows>
 ) {
+    let mut window = windows.get_primary_mut().unwrap();
+
     // camera
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 
-    // position window
-    let mut window = windows.get_primary_mut().unwrap();
-    window.set_position(IVec2::new(1314, 0));
+    // create the main resources
+    commands.insert_resource(Materials {
+        player_materials: materials.add(asset_server.load(PLAYER_SPRITE).into()),
+    });
+    commands.insert_resource(WinSize {
+        w: window.width(),
+        h: window.height(),
+    });
 
+    // position window
+    window.set_position(IVec2::new(1314, 0));
+}
+
+fn player_spawn(mut commands: Commands, materials: Res<Materials>, win_size: Res<WinSize>) {
     // spawn a sprite
-    let bottom = -window.height() / 2.0;
+    let bottom = -win_size.h / 2.0;
     commands
         .spawn_bundle(SpriteBundle {
-            material: materials.add(asset_server.load(PLAYER_SPRITE).into()),
+            material: materials.player_materials.clone(),
             transform: Transform {
                 translation: Vec3::new(0.0, bottom + 75.0 / 4.0 + 5.0, 10.0),
                 scale: Vec3::new(0.5, 0.5, 1.0),
