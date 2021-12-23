@@ -1,17 +1,22 @@
 use bevy::{core::FixedTimestep, prelude::*};
 use rand::{thread_rng, Rng};
 
-use crate::{ActiveEnemies, WinSize, Materials, SCALE, Enemy};
+use crate::{ActiveEnemies, WinSize, Materials, SCALE, Enemy, Laser, FromEnemy, Speed, TIME_STEP};
 
 pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut bevy::prelude::AppBuilder){
         app
+        .add_system(enemy_laser_movement.system())
         .add_system_set(
             SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(1.0))
                 .with_system(enemy_spawn.system())
+        ).add_system_set(
+            SystemSet::new()
+                .with_run_criteria(FixedTimestep::step(0.9))
+                .with_system(enemy_fire.system()),
         );
     }
 }
@@ -44,5 +49,46 @@ fn enemy_spawn(
         .insert(Enemy);
 
         active_enemies.0 += 1;
+    }
+}
+
+fn enemy_fire(
+    mut commands: Commands,
+    materials: Res<Materials>,
+    enemy_query: Query<&Transform, With<Enemy>>
+) {
+    // for each enemy shoot laser
+    for &tf in enemy_query.iter() {
+        let x = tf.translation.x;
+        let y = tf.translation.y;
+
+        // spawn enemy laser sprite
+        commands
+        .spawn_bundle(SpriteBundle {
+            material: materials.enemy_laser.clone(),
+            transform: Transform {
+                translation: Vec3::new(x, y - 15.0, 0.0),
+                scale: Vec3::new(SCALE, -SCALE, 1.0),
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+        .insert(Laser)
+        .insert(FromEnemy)
+        .insert(Speed::default());
+    }
+}
+
+fn enemy_laser_movement(
+    mut commands: Commands,
+    win_size: Res<WinSize>,
+    mut query: Query<(Entity, &Speed, &mut Transform), (With<Laser>, With<FromEnemy>)>
+) {
+    for (laser_entity, speed, mut laser_tf) in query.iter_mut() {
+        let translation = &mut laser_tf.translation;
+        translation.y -= speed.0 * TIME_STEP;
+        if translation.y < -win_size.h / 2.0 - 50.0 {
+            commands.entity(laser_entity).despawn();
+        }
     }
 }
