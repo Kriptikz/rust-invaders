@@ -8,8 +8,9 @@ use player::PlayerPlugin;
 use enemy::EnemyPlugin;
 
 const PLAYER_SPRITE: &str = "player_a_01.png";
-const LASER_SPRITE: &str = "laser_a_01.png";
+const PLAYER_LASER_SPRITE: &str = "laser_a_01.png";
 const ENEMY_SPRITE: &str = "enemy_a_01.png";
+const ENEMY_LASER_SPRITE: &str = "laser_b_01.png";
 const EXPLOSION_SHEET: &str = "explo_a_sheet.png";
 const SCALE: f32 = 0.5;
 const TIME_STEP: f32 = 1.0 / 60.0;
@@ -18,8 +19,9 @@ const TIME_STEP: f32 = 1.0 / 60.0;
 // Resources
 pub struct Materials {
     player: Handle<ColorMaterial>,
-    laser: Handle<ColorMaterial>,
+    player_laser: Handle<ColorMaterial>,
     enemy: Handle<ColorMaterial>,
+    enemy_laser: Handle<ColorMaterial>,
     explosion: Handle<TextureAtlas>,
 }
 struct WinSize {
@@ -31,11 +33,14 @@ struct WinSize {
 struct ActiveEnemies(u32);
 
 // Components
-struct Player;
-struct PlayerReadyFire(bool);
 struct Laser;
 
+struct Player;
+struct PlayerReadyFire(bool);
+struct FromPlayer;
+
 struct Enemy;
+struct FromEnemy;
 
 struct Explosion;
 struct ExplosionToSpawn(Vec3);
@@ -84,8 +89,9 @@ fn setup(
     // create the main resources
     commands.insert_resource(Materials {
         player: materials.add(asset_server.load(PLAYER_SPRITE).into()),
-        laser: materials.add(asset_server.load(LASER_SPRITE).into()),
+        player_laser: materials.add(asset_server.load(PLAYER_LASER_SPRITE).into()),
         enemy: materials.add(asset_server.load(ENEMY_SPRITE).into()),
+        enemy_laser: materials.add(asset_server.load(ENEMY_LASER_SPRITE).into()),
         explosion: texture_atlasas.add(texture_atlas),
     });
     commands.insert_resource(WinSize {
@@ -99,7 +105,7 @@ fn setup(
 
 fn laser_hit_enemy(
     mut commands: Commands,
-    laser_query: Query<(Entity, &Transform, &Sprite), With<Laser>>,
+    laser_query: Query<(Entity, &Transform, &Sprite), (With<Laser>, With<FromPlayer>)>,
     enemy_query: Query<(Entity, &Transform, &Sprite), With<Enemy>>,
     mut active_enemies: ResMut<ActiveEnemies>
 ) {
